@@ -116,17 +116,21 @@ print "\n";
 print "\n";
 print "Composite scores:\n";
 foreach my $build (@build) {
-    my $cscore = 0;
+    my $cscorea = 0;
+    my $cscoreg = 1;
     my $ccount = 0;
     foreach my $bench (@bench) {
         my $minb = $mark{$bench}{$build}{'min'};
         next unless defined($minb);
         my $min0 = $mark{$bench}{$build0}{'min'} || 1;
-        $cscore += $minb / $min0;
+        $cscorea += $minb / $min0;
+        $cscoreg *= $minb / $min0;
         $ccount++;
     }
     if ($ccount > 0) {
-      printf "  %-25s%8.1f\n", $buildnick{$build}, $cscore/$ccount*100;
+      printf "  %-25s%8.1f", $buildnick{$build}, $cscorea/$ccount*100;
+      printf "%8.1f", $cscoreg ** (1 / $ccount) * 100;
+      print "\n";
     }
 }
 
