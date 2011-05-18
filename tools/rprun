@@ -52,9 +52,9 @@ function buildinfo() {
 }
 
 
-[ -f log/$LOGFILE ] &&
-  { echo "log/$LOGFILE already exists... aborting"; exit 1; }
-(cd log; ln -sf $LOGFILE latest.log)
+[ -f logs/$LOGFILE ] &&
+  { echo "logs/$LOGFILE already exists... aborting"; exit 1; }
+(cd logs; ln -sf $LOGFILE latest.log)
 
 (
   echo "===rpbench runinfo ==="
@@ -92,5 +92,5 @@ function buildinfo() {
   done
 
   echo "===rpbench end date=$(isodate) ==="
-) |& tee log/$LOGFILE
+) |& tee logs/$LOGFILE
 
