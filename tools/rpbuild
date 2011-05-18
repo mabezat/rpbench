@@ -136,8 +136,7 @@ then
   make
   make install
   cd $BUILDDIR
-  perl Configure.pl --makefile-timing --ignore-parrot-rev \
-    --parrot-config=$PARROT_CONFIG
+  perl Configure.pl --makefile-timing --ignore-parrot-rev
 else
   cd $BUILDDIR
   perl Configure.pl --makefile-timing --gen-parrot
