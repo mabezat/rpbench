@@ -116,10 +116,11 @@ print "\n";
 print "\n";
 print "Build information:\n";
 my @infokeys = sort keys %info;
+my $note = "    -";
 foreach my $build (@build) {
-    print "  $buildnick{$build}: Rakudo $info{$build.'/rakudo-version'}, Parrot $info{$build.'/parrot_config-git_describe'}\n";
-    my $note = "    - ";
+    print "  $buildnick{$build}: ";
+    print "$info{$build.'/rakudo-version'}, $info{$build.'/parrot_config-git_describe'}\n";
     foreach my $key (grep /^$build\/RPBENCH-NOTE/ , @infokeys) {
-        print "$note$info{$key}\n";
+        print "$note $info{$key}\n";
     }
 }
