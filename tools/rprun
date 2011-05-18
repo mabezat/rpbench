@@ -3,7 +3,7 @@
 ARCH=$(uname -i)
 LOGFILE=$(date -u +$HOSTNAME-$ARCH-%Y%m%d%H%M.log)
 export SPECTEST="/usr/bin/perl t/harness --fudge --keep-exit-code"
-export RPMARK_DIR=$PWD
+export RPBENCH_DIR=$PWD
 
 if [ "$1" ] 
 then
@@ -40,9 +40,9 @@ function sysinfo() {
 function buildinfo() {
   for build in $BUILDLIST
   do
-    [ -r $build/RPMARK ] ||
-      { echo "Cannot read $build/RPMARK... aborting"; exit 1; }
-    sed -e "s!^!$build/RPMARK-!" $build/RPMARK
+    [ -r $build/RPBENCH ] ||
+      { echo "Cannot read $build/RPBENCH... aborting"; exit 1; }
+    sed -e "s!^!$build/RPBENCH-!" $build/RPBENCH
     for key in gc_type git_describe
     do
       echo "$build/parrot_config-$key=$($build/parrot_install/bin/parrot_config $key)"
@@ -57,14 +57,14 @@ function buildinfo() {
 (cd log; ln -sf $LOGFILE latest.log)
 
 (
-  echo "===rpmark runinfo ==="
-  echo "rpmark-version=002"
+  echo "===rpbench runinfo ==="
+  echo "rpbench-version=002"
   echo "rundate=$(isodate)"
   echo "BENCHLIST=$BENCHLIST"
   echo "BUILDLIST=$BUILDLIST"
   sysinfo
   buildinfo
-  echo "===rpmark begin ==="
+  echo "===rpbench begin ==="
   for bench in $BENCHLIST
   do
     BENCH=$(readlink -f $bench)
@@ -75,7 +75,7 @@ function buildinfo() {
     do
       for build in $BUILDLIST
       do
-        echo "===rpmark run bench=$bench build=$build trial=$trial ==="
+        echo "===rpbench run bench=$bench build=$build trial=$trial ==="
         isodate
         case $bench in
           *.p6)
@@ -91,6 +91,6 @@ function buildinfo() {
     done
   done
 
-  echo "===rpmark end date=$(isodate) ==="
+  echo "===rpbench end date=$(isodate) ==="
 ) |& tee log/$LOGFILE
 

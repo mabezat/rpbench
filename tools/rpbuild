@@ -140,7 +140,7 @@ else
   perl Configure.pl --makefile-timing --gen-parrot
 fi
 
-# Figure out a nick to use in builddir/RPMARK.  If we don't know 
+# Figure out a nick to use in builddir/RPBENCH.  If we don't know 
 # RAKUDOVER, use BUILDID
 if [ -n "$RAKUDOVER" ]
 then
@@ -156,18 +156,18 @@ NICK=${NICK:-"$(basename $BUILDID)"}
 GCTYPE=$($PARROT_CONFIG gc_type | tr 'A-Z' 'a-z')
 [[ "$GCTYPE" == *no?such?key* ]] && GCTYPE=ms2
 
-RPMARK="$BUILDDIR/RPMARK"
-printf "NICK=%-16s ($GCTYPE)\n" $NICK >$RPMARK
+RPBENCH="$BUILDDIR/RPBENCH"
+printf "NICK=%-16s ($GCTYPE)\n" $NICK >$RPBENCH
 if [ -n "$PARROTID" ]
 then
-  echo "NOTE=Rakudo $RAKUDOID on Parrot $PARROTID" >>$RPMARK
+  echo "NOTE=Rakudo $RAKUDOID on Parrot $PARROTID" >>$RPBENCH
 else
-  echo "# NOTE=additional notes here" >>$RPMARK
+  echo "# NOTE=additional notes here" >>$RPBENCH
 fi
 
 echo "$BUILDID created"
-echo "Contents of $BUILDID/RPMARK:"
-cat $RPMARK
+echo "Contents of $BUILDID/RPBENCH:"
+cat $RPBENCH
 
 [ -x $BUILDID/perl6 ] ||
   echo "Don't forget to run 'make' if needed in $BUILDID"

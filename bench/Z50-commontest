@@ -1,7 +1,7 @@
 #!/bin/sh
 # Default-Trials: 2
 
-CMD="/usr/bin/time $SPECTEST --verbosity=0 --tests-from-file=$RPMARK_DIR/files/commontest.data"
+CMD="/usr/bin/time $SPECTEST --verbosity=0 --tests-from-file=$RPBENCH_DIR/files/commontest.data"
 
 echo $CMD
 HARNESS_NOTTY=1 $CMD
