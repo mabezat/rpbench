@@ -19,19 +19,22 @@ BUILDID=$1
 RAKUDOARG=$2
 PARROTARG=$3
 
+[ -z "$BUILDID" ] && usage;
+
+# If BUILDID doesn't include a path separator, assume that 
+# build/ was intended
+echo "$BUILDID" | grep -q '/' || BUILDID="build/$BUILDID"
+
 # Stop if the requested build directory already exists
 [ -d $BUILDID ] &&
   { echo "$BUILDID already exists...aborting"; exit 1; }
 
 case "$BUILDID" in
-  "")
-    usage
-    ;;
-  *rakudo-master)
+  */rakudo-master)
     # rakudo master with its preferred Parrot
     RAKUDOID=${RAKUDOARG:-master}
     ;;
-  *rakudo-bleed)
+  */rakudo-bleed)
     # rakudo master on Parrot master
     RAKUDOID=${RAKUDOARG:-master}
     PARROTID=${PARROTARG:-master}
