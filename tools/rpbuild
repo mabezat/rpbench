@@ -142,6 +142,9 @@ else
   perl Configure.pl --makefile-timing --gen-parrot
 fi
 
+cd $BUILDDIR
+make t/spec spectest_update || true
+
 # Figure out a nick to use in builddir/RPBENCH.  If we don't know 
 # RAKUDOVER, use BUILDID
 if [ -n "$RAKUDOVER" ]
