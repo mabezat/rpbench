@@ -114,6 +114,21 @@ print '-' x 79;
 print "\n";
 
 print "\n";
+print "Composite scores:\n";
+foreach my $build (@build) {
+    my $cscore = 0;
+    my $ccount = 0;
+    foreach my $bench (@bench) {
+        my $min0 = $mark{$bench}{$build0}{'min'} || 1;
+        $cscore += $mark{$bench}{$build}{'min'} / $min0;
+        $ccount++;
+    }
+    if ($ccount > 0) {
+      printf "  %-25s%8.1f\n", $buildnick{$build}, $cscore/$ccount*100;
+    }
+}
+
+print "\n";
 print "Build information:\n";
 my @infokeys = sort keys %info;
 my $note = "    -";
