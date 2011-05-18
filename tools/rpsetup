@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -e
+
+mkdir -p -v build
+
+for build in rakudo-2011.01 rakudo-2011.02 rakudo-2011.03 rakudo-2011.04 \
+             rakudo-master rakudo-bleed
+do
+  [ -d build/$build ] || tools/rpbuild build/$build
+done

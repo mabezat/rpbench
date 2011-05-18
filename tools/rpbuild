@@ -1,0 +1,173 @@
+#!/bin/bash
+
+# halt on any unexpected errors
+set -e
+
+# record our starting directory
+START_DIR=$PWD
+START_NAME=$0
+
+# extract a rakudo or parrot version from a string
+function rakudover { perl -e "print '$1' =~ m{(201\d.[01]\d)}"; }
+function parrotver { perl -e "print '$1' =~ m{-(\d\.\d+\.\d|\w+)$}"; }
+function usage { 
+  echo "usage: $START_NAME builddir [rakudover] [parrotver]";
+  exit 1;
+}
+
+BUILDID=$1
+RAKUDOARG=$2
+PARROTARG=$3
+
+# Stop if the requested build directory already exists
+[ -d $BUILDID ] &&
+  { echo "$BUILDID already exists...aborting"; exit 1; }
+
+case "$BUILDID" in
+  "")
+    usage
+    ;;
+  *rakudo-master)
+    # rakudo master with its preferred Parrot
+    RAKUDOID=${RAKUDOARG:-master}
+    ;;
+  *rakudo-bleed)
+    # rakudo master on Parrot master
+    RAKUDOID=${RAKUDOARG:-master}
+    PARROTID=${PARROTARG:-master}
+    ;;
+  *-head)
+    # rakudo version on Parrot master
+    RAKUDOID=${RAKUDOARG:-$(rakudover $BUILDID)}
+    PARROTID=${PARROTARG:-master}
+    ;;
+  *)
+    RAKUDOID=${RAKUDOARG:-$(rakudover $BUILDID)}
+    PARROTID=${PARROTARG:-$(parrotver $BUILDID)}
+    ;;
+esac
+
+# Stop if we don't have a valid RAKUDOID
+[ -n "$RAKUDOID" ] ||
+  { echo "Cannot determine version of Rakudo to build"; usage; }
+
+BUILDDIR=$(readlink -f $BUILDID)
+[[ "$RAKUDOID" == 201[0-9].[01][0-9] ]] && RAKUDOVER=$RAKUDOID
+PARROT_CONFIG="$BUILDDIR/parrot_install/bin/parrot_config"
+
+echo "BUILDID=$BUILDID"
+echo "BUILDDIR=$BUILDDIR"
+echo "RAKUDOID=$RAKUDOID"
+echo "PARROTID=$PARROTID"
+echo "RAKUDOVER=$RAKUDOVER"
+
+# if RAKUDOARG points to a tarball, we extract from it
+# otherwise, RAKUDOVER specifies what tarball to download/extract
+if [[ "$RAKUDOARG" == *.tar.gz ]]
+then
+  RAKUDOTGZ=$RAKUDOARG
+elif [ -n "$RAKUDOVER" ]
+then
+  RAKUDOTGZ=build/src/rakudo-$RAKUDOVER.tar.gz
+  if [ ! -r $RAKUDOTGZ ]
+  then
+    echo "Downloading $RAKUDOTGZ from github..."
+    mkdir -p -v build/src
+    wget --no-check-certificate -O $RAKUDOTGZ \
+        https://github.com/downloads/rakudo/rakudo/rakudo-$RAKUDOID.tar.gz
+  fi
+fi
+
+# create parents to $BUILDDIR if needed
+mkdir -v -p $(dirname $BUILDDIR)
+# if we have a tarball, extract it into BUILDDIR
+# otherwise, use a git checkout
+if [ -n "$RAKUDOTGZ" ]
+then
+  echo "Extracting $RAKUDOID into $BUILDID"
+  tar --transform "s![^/]*!$BUILDID!" --show-stored-names -xvzf $RAKUDOTGZ
+else
+  git clone git@github.com:rakudo/rakudo.git $BUILDDIR
+fi
+
+# If the build directory doesn't have a parrot/ subdir, we'll
+# create one from the parrot repo
+if [ ! -d "$BUILDDIR/parrot" ]
+then
+  # If we don't already have clone of the parrot repo in build/parrot,
+  # fetch one now so we can copy from it again later
+  if [ ! -d build/parrot ]
+  then
+    echo "Fetching parrot repository from github...";
+    git clone git@github.com:parrot/parrot build/parrot;
+  fi
+  if [ -d build/parrot/.git ]
+  then
+    ( cd build/parrot; git pull )
+    # Copy our saved repository to the build dir
+    echo "Making parrot repository in $BUILDDIR/parrot"
+    mkdir -p -v $BUILDDIR/parrot
+    cp -a build/parrot/.git $BUILDDIR/parrot
+    ( cd $BUILDDIR/parrot; git checkout . )
+  else
+    # no local parrot repo to copy from, just do a straight checkout
+    git clone git@github.com:parrot/parrot $BUILDDIR/parrot
+  fi
+fi
+
+# If we requested a specific version of parrot, switch to it's tag or branch
+PARROTTAG="$PARROTID"
+if [[ "$PARROTTAG" == [0-9].*.[0-9] ]]
+then
+  PARROTTAG="RELEASE_$(echo $PARROTID | sed -e 's!\.!_!g')"
+fi
+
+# Now, build the appropriate version of Parrot.  If a tag was
+# supplied, use it to determine the version, otherwise let
+# Rakudo's --gen-parrot select the correct Parrot version.
+if [ -n "$PARROTTAG" ]
+then
+  cd $BUILDDIR/parrot
+  git checkout $PARROTTAG
+  perl Configure.pl --optimize --prefix=$BUILDDIR/parrot_install
+  make
+  make install
+  cd $BUILDDIR
+  perl Configure.pl --makefile-timing --ignore-parrot-rev \
+    --parrot-config=$PARROT_CONFIG
+else
+  cd $BUILDDIR
+  perl Configure.pl --makefile-timing --gen-parrot
+fi
+
+# Figure out a nick to use in builddir/RPMARK.  If we don't know 
+# RAKUDOVER, use BUILDID
+if [ -n "$RAKUDOVER" ]
+then
+  if [ -n "$PARROTID" ] 
+  then NICK="$RAKUDOVER/$PARROTID"
+  elif ! $PARROT_CONFIG git_describe | grep -q -- '-g'
+  then NICK="$RAKUDOVER/$(<$BUILDDIR/parrot/VERSION)"
+  fi
+fi
+NICK=${NICK:-"$(basename $BUILDID)"}
+
+# Figure out what GC is being used.
+GCTYPE=$($PARROT_CONFIG gc_type | tr 'A-Z' 'a-z')
+[[ "$GCTYPE" == *no?such?key* ]] && GCTYPE=ms2
+
+RPMARK="$BUILDDIR/RPMARK"
+printf "NICK=%-16s ($GCTYPE)\n" $NICK >$RPMARK
+if [ -n "$PARROTID" ]
+then
+  echo "NOTE=Rakudo $RAKUDOID on Parrot $PARROTID" >>$RPMARK
+else
+  echo "# NOTE=additional notes here" >>$RPMARK
+fi
+
+echo "$BUILDID created"
+echo "Contents of $BUILDID/RPMARK:"
+cat $RPMARK
+
+[ -x $BUILDID/perl6 ] ||
+  echo "Don't forget to run 'make' if needed in $BUILDID"
