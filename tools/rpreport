@@ -84,10 +84,10 @@ print
 print "$info{'rundate'}\n";
 
 my $build0 = $build[0];
-printf "%-26s", "Version";
+printf "%-27s", "Version";
 foreach (@trial) { print "     T$_ "; }
 print "    Fastest  vs base\n";
-print '-' x 78;
+print '-' x 79;
 print "\n";
 
 foreach my $bench (@bench) {
@@ -96,7 +96,7 @@ foreach my $bench (@bench) {
     my $min0 = $mark{$bench}{$build0}{'min'} || 1;
     my $markfmt = $mark{$bench}{'max'} < 10 ? '%8.2f' : '%8.1f';
     foreach my $build (@build) {
-        printf "  %-24s", $buildnick{$build};
+        printf "  %-25s", $buildnick{$build};
         foreach my $trial (@trial) {
             my $mark = $mark{$bench}{$build}{$trial};
             $mark = '' if !defined($mark);
@@ -110,7 +110,7 @@ foreach my $bench (@bench) {
     printf "\n";
 }
 
-print '-' x 78;
+print '-' x 79;
 print "\n";
 
 print "\n";
