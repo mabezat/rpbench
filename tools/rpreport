@@ -119,8 +119,10 @@ foreach my $build (@build) {
     my $cscore = 0;
     my $ccount = 0;
     foreach my $bench (@bench) {
+        my $minb = $mark{$bench}{$build}{'min'};
+        next unless defined($minb);
         my $min0 = $mark{$bench}{$build0}{'min'} || 1;
-        $cscore += $mark{$bench}{$build}{'min'} / $min0;
+        $cscore += $minb / $min0;
         $ccount++;
     }
     if ($ccount > 0) {
