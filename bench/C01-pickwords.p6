@@ -2,4 +2,4 @@
 
 use v6;
 
-say ~slurp("%*ENV<RPMARK_DIR>/files/unixdict.txt").words.pick(25);
+say ~slurp("%*ENV<RPBENCH_DIR>/files/unixdict.txt").words.pick(25);
