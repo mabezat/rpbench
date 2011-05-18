@@ -6,6 +6,7 @@ MEM=$(free -b | perl -ne '/Mem\D*(\d+)/ && printf "-%.0fm", $1/1024/1024;')
 LOGFILE=$(date -u +$HOSTNAME-$ARCH$MEM-%Y%m%d%H%M.log)
 export SPECTEST="/usr/bin/perl t/harness --fudge --keep-exit-code"
 export RPBENCH_DIR=$PWD
+export PERL6LIB=$RPBENCH_DIR/files
 
 if [ "$1" ] 
 then

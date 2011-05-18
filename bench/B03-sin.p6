@@ -5,7 +5,6 @@
 
 use v6;
 use Test;
-BEGIN { @*INC.push("t/spec/packages/") };
 use TrigTestSupport;
 
 
