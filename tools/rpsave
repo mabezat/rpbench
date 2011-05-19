@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# Script to save a log file and corresponding results in results/ dir.
+
+set -e
+
+LOGFILE=${1:-$(readlink -f logs/latest.log)} || true
+[ -n "$LOGFILE" ] ||
+  { echo "usage: $0 [logfile]"; 
+    echo "  [logfile] defaults to logs/latest.log if it exists"
+    exit 1; 
+  }
+
+
+LOGBASE=$(basename "$LOGFILE")
+RPTFILE=${LOGBASE%.log}
+RPTFILE=${RPTFILE%.txt}.txt
+
+[ -f "results/$RPTFILE" ] &&
+  { echo "results/$RPTFILE already exists...aborting"; exit 1; }
+
+mkdir -p -v results/logs
+
+echo "Copying $LOGFILE to results/logs/$LOGBASE..."
+if [ ! -f "results/logs/$LOGBASE" ]
+then
+  cp -n $LOGFILE results/logs/$LOGBASE
+elif ! cmp $LOGFILE results/logs/$LOGBASE
+then
+  echo "results/logs/$LOGFILE already exists...aborting"
+  exit 1
+fi
+
+echo "Generating results/$RPTFILE..."
+echo
+tools/rpreport results/logs/$LOGBASE >results/$RPTFILE
+cat results/$RPTFILE
+echo
+echo "Output saved as results/$RPTFILE"
+
