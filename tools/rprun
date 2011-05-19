@@ -54,6 +54,13 @@ function buildinfo() {
   done
 }
 
+function benchinfo() {
+  for bench in $BENCHLIST
+  do
+    echo "$bench-sha1sum=$(sha1sum $bench | cut -d' ' -f1)"
+  done
+}
+
 
 [ -f logs/$LOGFILE ] &&
   { echo "logs/$LOGFILE already exists... aborting"; exit 1; }
@@ -67,6 +74,7 @@ function buildinfo() {
   echo "BUILDLIST=$BUILDLIST"
   sysinfo
   buildinfo
+  benchinfo
   echo "===rpbench begin ==="
   for bench in $BENCHLIST
   do
