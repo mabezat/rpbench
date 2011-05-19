@@ -129,7 +129,7 @@ foreach my $build (@build) {
     }
     if ($ccount > 0) {
       printf "  %-25s%8.1f", $buildnick{$build}, $cscorea/$ccount*100;
-      printf "%8.1f", $cscoreg ** (1 / $ccount) * 100;
+      # printf "%8.1f", $cscoreg ** (1 / $ccount) * 100;
       print "\n";
     }
 }
